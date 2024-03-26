@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Texte</title>
+    <style>
+      .erreur{
+      color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <form method="POST">
+      <p>
+	<label>Prenom : <input id="prenom" type="text"/></label> 
+	<span class="erreur" id="erreur-prenom">Vide !</span>
+      </p>
+      <p>
+	<label>Nom : <input id="nom" type="text"/></label> 
+      </p>
+    </form>
+    <p>Bonjour <span id="affiche-prenom"></span> <span id="affiche-nom"></span>!</p>
+    <script>
+      let inputNom = document.querySelector('#nom');
+      inputNom.addEventListener('keyup',
+      function(event) {
+          let afficheNom = document.querySelector('#affiche-nom');
+          afficheNom.textContent = inputNom.value;
+      });
+      
+      let inputPrenom = document.querySelector('#prenom');
+      inputPrenom.addEventListener('keyup',
+      function(event) {
+          let affichePrenom = document.querySelector('#affiche-prenom');
+          affichePrenom.textContent = inputPrenom.value;
+          let erreur = document.querySelector('#erreur-prenom');
+          if (inputPrenom.value.length===0) {erreur.style.opacity = 1;}
+          else {erreur.style.opacity = 0;}
+      });
+    </script>
+  </body>
+</html>

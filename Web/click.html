@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Hello World JS</title>
+  </head>
+  <body>
+    <h1 style="color:yellow">Bonjour!</h1>
+    <p>
+      <img src="https://moodle.iutv.univ-paris13.fr/img/bjs/tux.png" alt="tux"/>
+    </p>
+    <script>
+       document.querySelector('h1').addEventListener('click',ma_fonction);
+       function ma_fonction()
+       {
+           document.querySelector('img').src='https://moodle.iutv.univ-paris13.fr/img/bjs/smile.png';
+       }
+
+       document.querySelector('img').addEventListener('click',ma_func);
+       function ma_func()
+       {
+           document.querySelector('img').src='https://moodle.iutv.univ-paris13.fr/img/bjs/tux.png'
+       }
+    </script>
+  </body>
+</html>

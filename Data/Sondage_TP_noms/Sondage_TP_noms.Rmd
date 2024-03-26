@@ -1,0 +1,352 @@
+---
+title: 'TP Sondages'
+author: "Noms"
+date: "Lundi 30 mai 2022"
+output:
+  html_document:
+    toc: yes
+    toc_depth: '2'
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
+  word_document:
+    toc: yes
+    toc_depth: '2'
+subtitle: ''
+header-includes: \usepackage[french]{babel}
+---
+
+**Rappels:** 
+
+- On ouvre une cellule de code avec le raccourci `Ctrl+Alt+i`.
+
+- Le bouton `knit` permet de générer un fichier  `html`, `pdf` ou `word`. Le rendu `html` est le plus joli de prime abord, mais on peut modifier un fichier `word` et générer le `pdf` à partir de ce fichier.
+
+- L'instruction `eval=FALSE` dans l'accolade de la cellule permet que celle-ci ne soit pas  compilée avec `knit`.
+
+- Si vous chercher de l'aide, il faut privilégier l'ordre suivant: (1) l'aide de `R` (`?nom_de_la_fonction`), (2) une recherche sur internet, (3) votre partenaire pour ce TP et (4) un de vos enseignants.
+
+- En `R`, on commence presque toujours par situer la session dans le dossier commun. On se place sur le fichier `.Rmd`: `Session`, `set Working Directory` puis `To Source File Location` (utile pour appeler un fichier situé dans le même dossier).
+
+- Un dernier réflexe consiste à ouvrir votre code par la cellule suivante. Ainsi vous êtes sûr que l'éxecution du code  ne dépend pas de variables qui ne sont pas définies dans le fichier (pas très utile avec `.Rmd` lorsque l'exécution est faîte avec `knit`, mais très utile dans certaines cellules ou dans les fichiers `.R`).
+```{r}
+# Efface tous les objets de l'environnement
+rm(list=ls())
+```
+
+\newpage
+# Quelques rappels sur les "sondages simples".
+
+Le sondage est une méthode de la statistique inférentielle. Il a pour objectif d'évaluer les paramètres ou les proportions de certaines caractéristiques d'une population cible. 
+
+**Un exemple:** combien de fois les français agés de 18 à 30 ans ont-ils votés en moyenne, à quels types d'élection et pour quels partis ? La population cible est "les français agées de 18 à 30 ans". Les paramètres et proportions sont le nombre moyen de votes auxquels les indidividus ont pris part, la proportion de votes à telles ou telles élections ou pour tels ou tels partis.
+
+Cependant, les données ont un coût et la plupart du temps, il n'est pas possible d'effectuer un complet recensement des caractéristiques de la population. On parle de sondage lorsque l'évaluation se base sur une partie limitée de la population cible. Cette sous-partie est appelé l'échantillon. L'étude de l'échantillon permet d'inférer les caractéristiques de la population cible. Dans le cas d'une moyenne ou d'une proportion, l'échantillon nous permet de calculer une estimation et les marges d'erreurs probables de cette estimation. C'est ce qu'on appelle un intervalle de confiance. 
+
+
+[La base de données des naissances en 2019](https://www.insee.fr/fr/statistiques/4768335?sommaire=4768339#consulter) constitue la population cible. On la téléchargera sous son format `csv`. Il est demandé d'effectuer des tirages uniformes et indépendants dans cette base afin de constituer un (ou des échantillons), puis de mener l'inférence permettant de généraliser les évaluations faîtes sur l'échantillon à la population cible.
+
+```{r}
+df <- read.csv("FD_NAIS_2019.csv", sep=";")
+```
+
+
+Alors, bien sûr, dans notre base, on possède les données sur la totalité de la population et il serait plus efficace, du point de vue de la qualité des résultats, d'effectuer une analyse descriptive de toute la base. **Mais ce n'est pas le but. Ce projet se fixe pour objectif la mise en oeuvre de sondage et l'étude de la qualité des sondages effectués. Cela nécessite de considérer que l'on a un accès partiel à la base de donnée: l'échantillon tiré .** De ce point de vue, il est très pratique de posséder l'intégralité des données de la population cible. Cela permet de comparer les estimations faîtes sur la base de l'échantillon avec les vrais paramètres de la population.
+
+### A. Introduction
+
+0. Combien y a-t-il "d'observations/individus" dans la population cible ? Imprimer un résumé des caractéristiques à l'aide de la fonction `summary`.
+```{r}
+summary(df)
+```
+
+Une autre fonction intérésante pour résumer des données:
+```{r}
+str(df)
+```
+
+
+1. Générer un échantillon (un vecteur d'indice de ligne) de taille 30. Les tirages parmi les indices de lignes doivent être **uniformes et indépendants**. Indication: `sample`.
+```{r}
+sample(df$AGEMERE, size=30)
+```
+
+
+2. Créer la fonction `echantillonnage` permettant de générer un échantillon de la taille que l'on souhaite. Cette fonction prendra en paramètre la taille `n` de l'échantillon et la taille  `N` de la population. \`A l'aide de votre fonction, sélectionner un vecteur d'observations correspondant à l'échantillon pour la caractéristique `AGEMERE`. On nommera ce vecteur `ech`. 
+```{r}
+echantillonnage <- function(n,N) {
+  indice <- sample(1:N, n, replace = TRUE, rep(1 / N, N))
+  return(indice)
+}
+N <- length(df$AGEMERE)
+indice = echantillonnage(100, N)
+ech <- df$AGEMERE[indice]
+```
+
+
+3. Calculer la moyenne et la variance de la caractéristique `AGEMERE` dans la population et dans l'échantillon (fonction `mean` et `var`). Vous ferez bien la distinction entre ces deux cadres, le premier relevant des statisques descriptives et le second des statistiques inférentielles.      
+```{r}
+mean(df$AGEMERE)
+var(df$AGEMERE)
+```
+```{r}
+mean(ech)
+var(ech)
+```
+
+
+4. Le quantile d'une v.a. continue $X$ est un nombre $q_p$ telle que la probabilité que $X$ soit inférieur (ou égale) à $q_p$ vale $p$: $F(q_p)=\mathbb{P}(X\leq q_p)=p$. En ce sens, la fonction quantile est l'inverse de la fonction de répartition $F$. Soit $X$ une v.a. normale $\mathcal{N}(0,1).$ Comment peut-on obtenir avec `R` le quantile à 90\% de $X.$
+```{r}
+quantile(mean(ech), 0.9)
+```
+
+5. Soit $X_1, X_2, \ldots, X_{100}$ un échantillon de v.a. indépendantes et de lois normales $\mathcal{N}(m,2).$ Calculer, à l'aide de `R`, la longueur de l'intervalle de confiance  de niveau 95\% pour l'estimateur de la moyenne, $\overline{X}_{100}.$
+```{r}
+ic <- t.test(ech)$conf.int
+```
+
+### B. Intervalles de confiance utilisant la loi normale 
+
+6. Créer une fonction `int_centre_m_norm_v` prenant en paramétre principal un vecteur d'observations et qui renvoit un intervalle de confiance pour la moyenne centré sur la moyenne d'échantillon $\overline{X}_n$. Cet intervalle sera nommé `int_centre_m`. On suppose que l'echantillon est constitué de v.a. de loi normale de variance connue (`norm_v`). Les paramètres d'entrée de la fonction sont `vecteur`,`variance`, `conf_level` et `na.rm=TRUE` (valeur par défaut). Remarque: `na.rm` est un paramètre des fonctions `mean` et `var` permettant d'obtenir le calcul sans tenir compte des valeurs manquantes. 
+
+```{r}
+int_m_norm_v = function(vector, variance, conf.level, na.rm=T) {
+     if (length(vector)==0) { cat("Erreur ! Le vecteur ",substitute(vector),"est vide.\n")} 
+      else { 
+      n = length(vector)-sum(is.na(vector)) 
+      proba = (1-conf.level)*100 ; proba = (100-proba/2)/100 
+      q_norm = qnorm(proba,0,1) # quantile 
+      dist_max = q_norm * sqrt(variance/n) 
+      moyenne = mean(vector,na.rm=na.rm)  
+      intervalle = c(moyenne-dist_max, moyenne+dist_max)
+      return(list(intervalle=intervalle, moyenne=moyenne, dist_max)) }}
+```
+
+......bla bla bla.....
+
+10. Appliquer les fonctions précédentes au vecteur `ech` en prennant pour valeur de la variance, celle de la population.
+
+```{r}
+int_m_norm_v(ech, var(df$AGEMERE), 0.95, na.rm=TRUE)
+```
+
+
+
+### 2.2 Etude de la qualité des sondages
+
+Dans cette partie, on cherche à étudier la qualité des marges d'erreurs des intervalles de confiance. 
+
+Protocole: (1) générer un grand nombre d'échantillons de même taille, (2) déterminer les intervalles de confiance associés aux échantillons tirés ($\alpha$ est fixe), (3) calculer la proportion des intervalles de confiance obtenus qui contiennent la vraie valeur (celle de la population).
+
+La proportion des intervalles de confiance contenant la vraie moyenne devrait s'approcher du taux de confiance choisi pour les intervalles.
+
+Voici le code permettant de réaliser le protocole ci-dessus.
+
+```{r}
+NN =1000
+Estimation_m<-rep(NA,NN)
+for(i in 1:NN){
+  indice=echantillonnage(100,N)
+  Estimation_m[i]<-mean(df$AGEMERE[indice],na.rm=TRUE)
+}
+
+hist(Estimation_m, freq=FALSE, ylab="Densité",main="Histogramme des probabilités")
+abline(v=mean(df$AGEMERE), col="red")
+
+m=mean(df$AGEMERE,na.rm=TRUE)
+
+Test.int.m.norm = function(N,moy,conf.level) { 
+    ratio=0  
+    for (i in 1:1000){
+      echantillon_indice=sample(1:N,100,replace=TRUE,rep(1/N,N))
+      res=int_m_norm_v(df$AGEMERE[echantillon_indice],var(df$AGEMERE),conf.level=conf.level)  
+      ratio=ratio + (res$intervalle[1]<moy && res$intervalle[2]>moy)
+    }
+    return(ratio/1000)} 
+
+Test.int.m.norm(N,m,0.95)
+```
+ Il parait que 95% des intervalles générés contiennent la vraie moyenne (marqué en rouge) donc c'est plutôt rassurant. 
+ 
+ 
+# Sondages stratifiés (partie à complèter et rendre en binôme)
+
+0. Calculons la variance des estimations générés ci-dessus.
+```{r}
+var(Estimation_m)
+```
+
+1. Ecrire la fonction "var_est_simple" qui permet de calculer la variance de l'estimateur de la moyenne du variable "AGEMERE" en fonction de la taille d'un échantillon simple. 
+La formule pour une population de taille N:
+$$V(\hat{\mu})=(1-\frac{n}{N})\frac{S^2}{n}= (1-\frac{n}{N})\frac{\frac{N}{N-1}\sigma^2}{n} =\frac{(N-n)}{(N-1)}\frac{\sigma^2}{n} $$
+
+```{r}
+var_est_simple <- function(n,N) {
+  (N - n) / (n * (N - 1)) * var(df$AGEMERE)
+}
+```
+
+2. Comparer var_est_simple(100,N) avec var(Estimation_m) et commenter.
+
+```{r}
+var_est_simple(100, N)
+var(Estimation_m)
+```
+Il semble que var_est_simple(100, N) est tres proche de var(Estimation_m) ce qui est normal car var est simple prends 100 en parametre (taille d'echantillon) et nous avons choisis de prendre des 100-echantillons dans notre code Estimation\_m. On peut en deduire que noter vecteur de moyennes d'echantillon est un bon estimateur de la variance des moyennes
+
+## Un exemple
+Si l'on prends le variable "AMAR" "année de marriage des parents" comme information auxiliaire, nous pourrions penser que l'âge d'une mère à une naissance est différent selon qu'elle soit mariée ou non.
+
+3. D'abort on regarde notre variable auxilliaire:
+
+```{r}
+head(df$AMAR)
+```
+Que veut dire les valeur 0?
+La valeur 0 indique que la femme donnant naissance n'est pas mariee.
+
+4. Creer le vecteur "amar" des valeurs différents en ordre croissant du variable "AMAR"? et afficher ce vecteur:
+```{r}
+amar <- sort(unique(df$AMAR))
+amar
+```
+
+
+4. Faire un summary de "AMAR" prennant en compte le sens des valeurs "0"
+```{r}
+summary(df$AMAR[df$AMAR != "0"])
+N1 <- length(df$AMAR[df$AMAR != "0"])
+N2 <- length(df$AMAR[df$AMAR == "0"])
+```
+
+
+5. comparer par un graphique les distributions de "AGEMERE" selon l'état marital de celui-ci et les paramêtres de position et dispersion.
+(pour afficher plusieurs graphique on peut utiliser par(mfrow=c(n,m)) pour n lignes de m graphiques). Que constatez-vous?
+```{r}
+summary(df$AGEMERE[df$AMAR != "0"])
+```
+```{r}
+summary(df$AGEMERE[df$AMAR == "0"])
+```
+```{r}
+op <- par(mfrow=c(1,2))
+hist(df$AGEMERE[df$AMAR != "0"], main="L'âge des mères mariées", xlab="Âge")
+
+abline(v=mean(df$AGEMERE), col="red")
+
+hist(df$AGEMERE[df$AMAR == "0"], main="L'âge des mères non mariées", xlab="Âge")
+
+abline(v=mean(df$AGEMERE), col="red")
+par(op)
+```
+On constate une moyenne d'age légèrement plus faible chez les mères non mariées.
+
+6. a) Générer un échantillon de taille 1000, selon un plan stratifié par le "statut marital des parents" avec allocation proportionnel. 
+```{r}
+n1 <- 1000*N1/N
+n2 <-1000*N2/N
+indice1=echantillonnage(n1,N1)
+indice2=echantillonnage(n2,N2)
+ech1 <- df$AGEMERE[df$AMAR != "0"][indice1]
+ech2 <- df$AGEMERE[df$AMAR == "0"][indice2]
+ech_str_amar <- c(ech1, ech2)
+head(ech_str_amar)
+```
+```{r}
+mean(ech_str_amar)
+```
+
+
+
+La variance de l'estimateur pour un plan stratifié avec allocation proportionnel est donnée par la formule
+
+$$V(\hat{\mu})=\frac{1}{n}(1-\frac{n}{N})\frac{1}{N}\sum_{h=1}^{H}N_hS_h^2  $$
+```{r}
+var1 <- var(df$AGEMERE[df$AMAR != "0"])
+var2 <- var(df$AGEMERE[df$AMAR == "0"])
+var1
+var2
+```
+```{r}
+var_est_pprop <- 1/1000*(1-1000/N)*1/N*(N1*var1+N2*var2)
+var_est_pprop
+```
+Un $IC_{95}$ de la moyenne de "AGEMERE" selon ce plan.
+```{r}
+int_m_norm_v(ech_str_amar, 1000*var_est_pprop, 0.95, na.rm=TRUE)
+```
+
+   b) Il est peu probable qu'une allocation optimale nous rapporte beaucoup plus de précision, car la précision est déjà bonne, et les histogrammes ci-dessus nous montre que la variabilité de "AGEMERE" dans les deux  strates "mariée" "non mariée" semble à peu prés égales.
+   
+La variance de l'estimateur pour un plan stratifié avec allocation optimal est donnée par la formule
+
+$$V(\hat{\mu})=\frac{1}{N^2}\sum_{h=1}^{H}N_h\frac{N_h-n_h}{n_h}S_h^2  $$   
+   
+On va toute même re-calculer la variance de l'etimateur pour confirmer:
+```{r}
+n1_opt <- 1000*N1*sqrt(var1)/(N1*sqrt(var1)+N2*sqrt(var2))
+n2_opt <-  1000*N2*sqrt(var2)/(N1*sqrt(var1)+N2*sqrt(var2))
+n1_opt
+n2_opt
+```
+
+```{r}
+var_est_popt <- 1/(N^2)*(N1*(N1-n1_opt)/n1_opt*var1 + N2*(N2-n2_opt)/n2_opt*var2)
+var_est_popt
+```
+Donc on obtient une amélioration d'ordre 
+```{r}
+var_est_pprop-var_est_popt
+```
+
+sur la variance de l'estimateur, ce qui confirme que le plan proportionnel suffit (pourquoi?).
+   
+## À vous de jouer:
+
+7. Faire un choix motivé d'une variable auxiliaire, permettant une stratification de la population, susceptible d'améliorer l'estimateur de la moyenne de la variable "AGEMERE".
+
+Nous choisirons d'abord comme variable auxiliaire le departement de domicile de la mere de l'enfant. (DEPDOM)
+
+8. Explorer la variable choisie affin de déterminer les strates. (par exemple un tableau de graphiques par strates, comme les histogrammes ci-dessus)
+```{r}
+depdom <- sort(unique(df$DEPDOM))
+depdom
+
+op <- par(mfrow = c(1, 2))
+hist(df$AGEMERE[df$DEPDOM == "93"], main="L'âge des mères du 93", xlab="Âge")
+
+abline(v=mean(df$AGEMERE), col="red")
+
+hist(df$AGEMERE[df$DEPDOM == "35"], main="L'âge des mères de ille et vilaine", xlab="Âge")
+
+abline(v=mean(df$AGEMERE), col="red")
+
+hist(df$AGEMERE[df$DEPDOM == "95"], main="L'âge des mères de 95", xlab="Âge")
+
+abline(v=mean(df$AGEMERE), col="red")
+par(op)
+```
+9. Créer deux échantillons stratifiés de taille n (que vous choisissez), un avec allocation proportionnelle et un avec allocation optimale.
+```{r}
+strate_prop <- prop.table(table(df$DEPDOM))
+target <- round(strate_prop * 1000)
+ech_prop <- list()
+
+for (depdom in unique(df$DEPDOM)) {
+    strate_data <- df$AGEMERE[df$DEPDOM == depdom]
+
+    ech_index <- sample(1:length(strate_data), size = target[as.character(depdom)], replace = FALSE)
+    ech_prop[[as.character(depdom)]] <- strate_data[ech_index]
+}
+
+ech_prop_vector <- unlist(ech_prop)
+table(ech_prop_vector)
+
+```
+
+10. calculer, la variance corrigé des strates et dans chacun des deux cas calculer la variance de l'estimateur et donner un $IC_{95}$ pour la moyenne de "AGEMERE". Comparer avec le plan simple et conclure (quel est le meilleur plan?) 
+
+*** recommence ce procédé avec une autre variable auxilliaire.
+
+11. Maintenant générer un echantillon simple de 2000 lignes de la BDD (sans l'afficher). imaginons que cette échantillon correspond à des données fraichement recueilli par une enquête (la variance de AGEMERE est donc inconnue). Admettons comme connu le résultat des exercices 7 à 10, Faire une post-stratification de l'échantillon qui vous semble pertinent et illustrer la pertinence par l'obtention d'une meilleure estimateur de la moyenne de "AGEMERE".
+

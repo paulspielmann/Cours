@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8"/>
+		<title>className</title>
+		<style>
+			.selectionne
+			{
+				background-color: white;
+				color: green
+			}
+		</style>
+	</head>
+	<body>
+		<span>bonjour</span>
+		<script>
+		  let b = document.querySelector('span');
+		  b.addEventListener('click',
+		  function() {
+		    b.className = "selectionne";
+		  });
+		</script>
+	</body>
+</html>

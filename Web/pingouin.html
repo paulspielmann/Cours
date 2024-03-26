@@ -1,0 +1,51 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8"/>
+		<title>Pingouin</title>
+		<style>
+		  .splat
+		  {
+		  position: absolute;
+
+		  //top: 500px;
+		  //left: 100px;
+
+		  transform: scale(4);
+
+		  transition: top 1s, left 1s, transform 1s;
+		  }
+		</style>
+	</head>
+	<body>
+		<img src="https://moodle.iutv.univ-paris13.fr/img/bjs/tux.png" alt="tux"/>
+		<p>
+			bla bla bla bla 
+			<img class="splat" src="https://moodle.iutv.univ-paris13.fr/img/bjs/splat.png" alt="splat"/> 
+			bla bla bla
+		</p>
+		<script>
+		  document.addEventListener('mousemove', ajouter_splat);
+		  
+		  function ajouter_splat(event)
+		  {
+		    event.preventDefault();
+		  
+		    let i = document.createElement('img');
+		    i.className = "splat";
+		    i.src = "https://moodle.iutv.univ-paris13.fr/img/bjs/splat.png";
+		    document.body.append(i);
+  		    window.getComputedStyle(i).top;
+		  
+  		    let x = event.pageX - 16;
+ 		    let y = event.pageY - 16;
+		  
+ 		    i.style.top = y + "px";
+		    i.style.left = x + "px";
+		    i.style.transform='scale(1)';
+		  }
+		</script>
+	</body>
+</html>
+

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Ajouter</title>
+  </head>
+  <body>
+    <input type="button" />
+    <script>
+      let bouton=document.querySelector('input');
+      bouton.addEventListener('click',ajouter_splat);
+      function ajouter_splat() 
+      {
+      let i = document.createElement('img');
+      i.src="https://moodle.iutv.univ-paris13.fr/img/bjs/splat.png"
+      document.body.append(i);
+      }
+    </script>
+  </body>
+</html>

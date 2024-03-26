@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8"/>
+		<title>Bouton</title>
+	</head>
+	<body>
+		<input type="button" value="Appuyer"/>
+		<p>
+			Bonjour!
+		</p>
+		<script>
+			let bouton=document.querySelector('input');
+			bouton.addEventListener('click',fonction_a_appeler);
+			function fonction_a_appeler()
+			{
+			  let paragraphe=document.querySelector('p');
+			  paragraphe.style.color='red';
+			}
+		</script>
+	</body>
+</html>
