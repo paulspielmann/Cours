@@ -4,7 +4,7 @@ require 'Model.php';
 $m = Model::getModel();
 
 if (isset($_GET["id"])) {
-    if ($_GET["id"] > $m->getTotal() || $_GET["id"] < 0) {
+    if (!$m->exists($_GET["id"])) {
         echo "There is no Nobel Prize associated to this ID.";
     } else {
         $m->removeNobelPrize($_GET["id"]);

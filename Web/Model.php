@@ -98,5 +98,16 @@ class Model {
         $req = $this->bd->prepare('DELETE FROM nobels WHERE id =' . $id);
         $req->execute();
     }
+
+    public function exists($id) {
+        $req = $this->bd->prepare('SELECT id FROM nobels WHERE id=' . $id);
+        $req->execute();
+        $res = $req->fetch();
+        var_dump($res);
+        if ($res)
+            return true;
+        else
+            return false;
+    }
 }
 ?>
