@@ -29,6 +29,74 @@ class Model {
         $req->execute();
         return $req->fetchAll();
     }
-}
 
+    public function getNobelPrizeInfo($n) {
+        $req = $this->bd->prepare('SELECT * FROM nobels WHERE id=' . $n);
+        $req->execute();
+        return $req->fetchAll();
+    }
+
+    public function getCategories() {
+        $req = $this->bd->prepare('SELECT * FROM categories');
+        $req->execute();
+        return $req->fetchAll();
+    }
+
+    public function addNobelPrize($infos) {
+        $vals = '';
+        foreach ($infos as $info) {
+            if (is_numeric($info)) {
+                $vals .= intval($info) . ', ';
+            } else {
+                $vals .= '\'' . $info . '\'' . ', ';
+            }
+        }
+
+        $vals = rtrim($vals, ", ");
+
+        $req = $this->bd->prepare('INSERT INTO nobels (year, category, name, birthdate, birthplace, county, motivation) VALUES (' . $vals . ')');
+        $req->execute();
+        return true;
+    }
+
+    // TODO : Refactor this into repeated calls to a helper/auxiliary function
+    public function checkData() {
+        $res = [];
+        
+        if (!isset($_POST["year"]) || !is_numeric($_POST["year"]) || $_POST["year"] <= 0) {  
+            return false;
+        } else $res["year"] = $_POST["year"];
+        
+        if (!isset($_POST["category"]) || $_POST["category"] == '' || ctype_space($_POST["category"])) {
+            return false;
+        } else $res["category"] = $_POST["category"];
+        
+        if (!isset($_POST["name"]) || $_POST["name"] == '' || ctype_space($_POST["name"])) {
+            return false;
+        } else $res["name"] = $_POST["name"];
+        
+        if (isset($_POST["birthdate"]) && is_numeric($_POST["birthdate"])) {
+            $res["birthdate"] = $_POST["birthdate"];
+        } else $res["birthdate"] = "";
+  
+        if (!isset($_POST["birthplace"]) || $_POST["birthplace"] == '' || ctype_space($_POST["birthplace"])) {
+            $res["birthplace"] = "";
+        } else $res["birthplace"] = $_POST["birthplace"];
+
+        if (!isset($_POST["county"]) || $_POST["county"] == '' || ctype_space($_POST["county"])) {
+            $res["county"] = "";
+        } else $res["county"] = $_POST["county"];
+        
+        if (!isset($_POST["motivation"]) || $_POST["motivation"] == '' || ctype_space($_POST["motivation"])) {
+            $res["motivation"] = "";
+        } else $res["motivation"] = $_POST["motivation"];
+
+        return $res;
+    }
+
+    public function removeNobelPrize($id) {
+        $req = $this->bd->prepare('DELETE FROM nobels WHERE id =' . $id);
+        $req->execute();
+    }
+}
 ?>

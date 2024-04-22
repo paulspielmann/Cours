@@ -1,0 +1,1 @@
+echo (preg_check("/^-?[0-9]+$/", $_GET));
